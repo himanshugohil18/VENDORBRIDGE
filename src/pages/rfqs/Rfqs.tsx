@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { RFQ, RFQItem, UserRole } from '../../types';
+import { formatCurrency } from '../../utils/currency';
 import { 
   Plus, Calendar, PlusCircle, Trash, ClipboardList, 
   Send, Eye, SendHorizontal, AlertCircle, Sparkles, CheckCircle2, DollarSign
@@ -433,7 +434,7 @@ export const Rfqs: React.FC = () => {
                           />
                         </div>
                         <div className="col-span-4 sm:col-span-2">
-                          <label className="block text-[9px] uppercase font-mono text-slate-500 mb-0.5">Expected Price ($)</label>
+                          <label className="block text-[9px] uppercase font-mono text-slate-500 mb-0.5">Expected Price (₹)</label>
                           <input 
                             type="number" 
                             required
@@ -529,7 +530,7 @@ export const Rfqs: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-mono text-slate-500">Unit Cost:</span>
                       <div className="relative w-24">
-                        <span className="text-[11px] font-mono text-slate-450 absolute left-2 top-2">$</span>
+                        <span className="text-[11px] font-mono text-slate-450 absolute left-2 top-2">₹</span>
                         <input 
                           type="number"
                           required
@@ -583,15 +584,15 @@ export const Rfqs: React.FC = () => {
                     <span className="font-bold text-[9px] uppercase text-emerald-400 block mb-2 font-display tracking-wider">Estimated ERP Bid Summary (18% standard GST)</span>
                     <div className="flex justify-between">
                       <span>Proposals Subtotal:</span>
-                      <span className="font-bold text-slate-200">${calcs.subtotal.toLocaleString()}</span>
+                      <span className="font-bold text-slate-200">{formatCurrency(calcs.subtotal)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Estimated standard GST Code:</span>
-                      <span>${calcs.tax.toLocaleString()}</span>
+                      <span>{formatCurrency(calcs.tax)}</span>
                     </div>
                     <div className="flex justify-between text-xs font-bold font-sans text-emerald-400 pt-2 border-t border-slate-850">
                       <span>Total gross bid amount:</span>
-                      <span className="font-mono">${calcs.grandTotal.toLocaleString()}</span>
+                      <span className="font-mono">{formatCurrency(calcs.grandTotal)}</span>
                     </div>
                   </div>
                 );

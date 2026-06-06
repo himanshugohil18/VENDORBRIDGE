@@ -158,7 +158,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     fetch('/api/auth/login', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, rememberMe: true })
+      body: JSON.stringify({ email, role, rememberMe: true })
     }).catch(err => console.warn("Backend dynamic login trace inactive", err));
 
     return true;

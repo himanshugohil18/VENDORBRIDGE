@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { PurchaseOrder } from '../../types';
+import { formatCurrency } from '../../utils/currency';
 import { 
   FileCheck2, ShieldCheck, Printer, Download, MapPin, 
   Building2, Phone, Mail, Award, Landmark, AlertCircle, Eye
@@ -80,7 +81,7 @@ export const PurchaseOrders: React.FC = () => {
                       </div>
                       
                       <div className="text-right font-mono text-xs font-bold text-emerald-450 shrink-0">
-                        ${po.totalAmount.toLocaleString()}
+                        {formatCurrency(po.totalAmount)}
                       </div>
                     </div>
                   );
@@ -200,8 +201,8 @@ export const PurchaseOrders: React.FC = () => {
                             <td className="p-2.5 font-bold text-slate-800 break-words">{item.productName}</td>
                             <td className="p-2.5 text-center font-mono font-bold">{item.quantity}</td>
                             <td className="p-2.5 text-center">{item.unit}</td>
-                            <td className="p-2.5 text-right font-mono">${item.unitPrice.toLocaleString()}</td>
-                            <td className="p-2.5 text-right font-mono font-bold text-slate-900">${item.total.toLocaleString()}</td>
+                            <td className="p-2.5 text-right font-mono">{formatCurrency(item.unitPrice)}</td>
+                            <td className="p-2.5 text-right font-mono font-bold text-slate-900">{formatCurrency(item.total)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -213,15 +214,15 @@ export const PurchaseOrders: React.FC = () => {
                     <div className="w-64 font-mono space-y-1.5 text-right">
                       <div className="flex justify-between pb-1 text-slate-500 border-b border-slate-100">
                         <span>Items subtotal:</span>
-                        <span>${activePO.subTotal.toLocaleString()}</span>
+                        <span>{formatCurrency(activePO.subTotal)}</span>
                       </div>
                       <div className="flex justify-between pb-1 text-slate-500 border-b border-slate-100">
                         <span>Corporate standard Tax / GST:</span>
-                        <span>${activePO.tax.toLocaleString()}</span>
+                        <span>{formatCurrency(activePO.tax)}</span>
                       </div>
                       <div className="flex justify-between text-sm font-bold text-slate-950 font-sans pt-1">
                         <span>Gross total amount:</span>
-                        <span className="text-emerald-700 font-extrabold">${activePO.totalAmount.toLocaleString()}</span>
+                        <span className="text-emerald-700 font-extrabold">{formatCurrency(activePO.totalAmount)}</span>
                       </div>
                     </div>
                   </div>

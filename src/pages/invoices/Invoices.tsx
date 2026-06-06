@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Invoice, UserRole } from '../../types';
+import { formatCurrency } from '../../utils/currency';
 import { 
   Receipt, FileCheck, CircleDollarSign, Calendar, Eye, 
   Printer, Coins, Landmark, AlertCircle, TrendingUp
@@ -54,7 +55,7 @@ export const Invoices: React.FC = () => {
         <div className="p-4 rounded-xl border dark:bg-slate-900/40 dark:border-slate-850 light:bg-white light:border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Accounts Paid Settled</span>
-            <div className="text-xl font-bold font-display mt-0.5 text-emerald-500">${totalPaid.toLocaleString()}</div>
+            <div className="text-xl font-bold font-display mt-0.5 text-emerald-500">{formatCurrency(totalPaid)}</div>
             <div className="text-[9px] text-slate-400 mt-1 font-mono">Bank cleared ledger funds</div>
           </div>
           <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-500">
@@ -65,7 +66,7 @@ export const Invoices: React.FC = () => {
         <div className="p-4 rounded-xl border dark:bg-slate-900/40 dark:border-slate-850 light:bg-white light:border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-sans">Accounts Payable Outstanding</span>
-            <div className="text-xl font-bold font-display mt-0.5 text-amber-500">${totalOutstanding.toLocaleString()}</div>
+            <div className="text-xl font-bold font-display mt-0.5 text-amber-500">{formatCurrency(totalOutstanding)}</div>
             <div className="text-[9px] text-slate-450 mt-1 font-mono">Simulated net liability</div>
           </div>
           <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500">
@@ -77,7 +78,7 @@ export const Invoices: React.FC = () => {
           <div>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">General GST liability</span>
             <div className="text-xl font-bold font-display mt-0.5 text-slate-350 dark:text-slate-200">
-              ${Math.round((totalPaid + totalOutstanding) * 0.18).toLocaleString()}
+              {formatCurrency(Math.round((totalPaid + totalOutstanding) * 0.18))}
             </div>
             <div className="text-[9px] text-slate-400 mt-1 font-mono">Estimated standard 18% tax index</div>
           </div>
@@ -127,7 +128,7 @@ export const Invoices: React.FC = () => {
                       </div>
                       
                       <div className="text-right font-mono text-xs font-bold text-slate-300 shrink-0">
-                        ${inv.grandTotal.toLocaleString()}
+                        {formatCurrency(inv.grandTotal)}
                       </div>
                     </div>
                   );
@@ -266,8 +267,8 @@ export const Invoices: React.FC = () => {
                             <td className="p-2 font-bold text-slate-800 break-words">{item.productName}</td>
                             <td className="p-2 text-center font-mono font-bold">{item.quantity}</td>
                             <td className="p-2 text-center">{item.unit || 'Units'}</td>
-                            <td className="p-2 text-right font-mono">${item.price.toLocaleString()}</td>
-                            <td className="p-2 text-right font-mono font-bold text-slate-900">${item.total.toLocaleString()}</td>
+                            <td className="p-2 text-right font-mono">{formatCurrency(item.price)}</td>
+                            <td className="p-2 text-right font-mono font-bold text-slate-900">{formatCurrency(item.total)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -279,16 +280,16 @@ export const Invoices: React.FC = () => {
                     <div className="w-64 font-mono space-y-1 text-right text-xs">
                       <div className="flex justify-between pb-1 text-slate-500 border-b border-slate-100">
                         <span>Items subtotal:</span>
-                        <span className="font-bold text-slate-800">${activeInvoice.subtotal.toLocaleString()}</span>
+                        <span className="font-bold text-slate-800">{formatCurrency(activeInvoice.subtotal)}</span>
                       </div>
                       <div className="flex justify-between pb-1 text-slate-500 border-b border-slate-100">
                         <span>Standard 18% GST element:</span>
-                        <span className="font-bold text-slate-800">${activeInvoice.tax.toLocaleString()}</span>
+                        <span className="font-bold text-slate-800">{formatCurrency(activeInvoice.tax)}</span>
                       </div>
                       <div className="flex justify-between text-xs font-bold text-slate-950 font-sans pt-1 border-t border-slate-200">
                         <span>Grand settled amount:</span>
                         <div className="flex flex-col">
-                          <span className="text-emerald-700 text-sm font-black">${activeInvoice.grandTotal.toLocaleString()}</span>
+                          <span className="text-emerald-700 text-sm font-black">{formatCurrency(activeInvoice.grandTotal)}</span>
                           <span className="text-[10px] font-mono font-bold text-slate-500 mt-0.5">{getStatusBadge(activeInvoice.status)}</span>
                         </div>
                       </div>

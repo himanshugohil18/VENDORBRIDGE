@@ -144,7 +144,7 @@ app.post("/api/auth/register", async (req, res) => {
 
 app.post("/api/auth/login", async (req, res) => {
   try {
-    const { email, password, rememberMe } = req.body;
+    const { email, password, rememberMe, role } = req.body;
     if (!email) {
       return res.status(400).json({ error: "Email address is required to login" });
     }
@@ -153,12 +153,26 @@ app.post("/api/auth/login", async (req, res) => {
     if (!user) {
       // Create user on-the-fly to support the seamless mock user onboarding fallback from earlier setup
       const defaultPasswordHash = await bcrypt.hash(password || "password123", 10);
+      
+      let resolvedRole = "PROCUREMENT";
+      if (role) {
+        resolvedRole = role.toUpperCase();
+      } else if (email.includes("admin")) {
+        resolvedRole = "ADMIN";
+      } else if (email.includes("mgr") || email.includes("manager") || email.includes("sophia") || email.includes("rodriguez")) {
+        resolvedRole = "MANAGER";
+      } else if (email.includes("vendor") || email.includes("marcus") || email.includes("apex") || email.includes("kross")) {
+        resolvedRole = "VENDOR";
+      } else if (email.includes("jenkins") || email.includes("sarah")) {
+        resolvedRole = "PROCUREMENT";
+      }
+
       user = await dbService.createUser({
         email,
         passwordHash: defaultPasswordHash,
         firstName: email.split("@")[0],
         lastName: "Member",
-        role: email.includes("admin") ? "ADMIN" : email.includes("mgr") || email.includes("manager") ? "MANAGER" : email.includes("vendor") ? "VENDOR" : "PROCUREMENT"
+        role: resolvedRole
       });
     } else if (password) {
       // Validate password if user supplied a password

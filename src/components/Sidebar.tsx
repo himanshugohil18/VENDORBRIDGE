@@ -35,9 +35,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onNavigate }) => {
   // Links items map: { id, label, icon, minRole }
   const allLinks = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, roles: [UserRole.ADMIN, UserRole.PROCUREMENT, UserRole.MANAGER, UserRole.VENDOR] },
-    { id: 'vendors', label: 'Vendors Partner Desk', icon: Users2, roles: [UserRole.ADMIN, UserRole.PROCUREMENT] },
-    { id: 'rfqs', label: 'RFI / RFP RFQs', icon: FileCheck2, roles: [UserRole.ADMIN, UserRole.PROCUREMENT, UserRole.VENDOR] },
-    { id: 'comparison', label: 'Bid Comparison Board', icon: ArrowLeftRight, roles: [UserRole.ADMIN, UserRole.PROCUREMENT] },
+    { id: 'vendors', label: 'Vendors Partner Desk', icon: Users2, roles: [UserRole.ADMIN, UserRole.PROCUREMENT, UserRole.MANAGER] },
+    { id: 'rfqs', label: 'RFI / RFP RFQs', icon: FileCheck2, roles: [UserRole.ADMIN, UserRole.PROCUREMENT, UserRole.MANAGER, UserRole.VENDOR] },
+    { id: 'comparison', label: 'Bid Comparison Board', icon: ArrowLeftRight, roles: [UserRole.ADMIN, UserRole.PROCUREMENT, UserRole.MANAGER] },
     { id: 'approvals', label: 'Executive Approvals', icon: CheckSquare, roles: [UserRole.ADMIN, UserRole.MANAGER] },
     { id: 'pos', label: 'Purchase Orders', icon: FileCheck2, roles: [UserRole.ADMIN, UserRole.PROCUREMENT, UserRole.VENDOR] },
     { id: 'invoices', label: 'Invoices Hub', icon: Receipt, roles: [UserRole.ADMIN, UserRole.PROCUREMENT, UserRole.VENDOR] },

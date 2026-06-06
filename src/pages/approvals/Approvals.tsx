@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ApprovalWorkflow, UserRole } from '../../types';
+import { formatCurrency } from '../../utils/currency';
 import { 
   CheckSquare, ShieldAlert, Clock, CheckCircle2, 
   XCircle, MessageSquare, ChevronRight, CornerDownRight, 
@@ -158,7 +159,7 @@ export const Approvals: React.FC = () => {
                         </div>
                         <div className="flex justify-between text-emerald-400 border-t border-slate-900 pt-2 font-bold mb-2">
                           <span>Direct Gross Total:</span>
-                          <span>${quote.grandTotal.toLocaleString()}</span>
+                          <span>{formatCurrency(quote.grandTotal)}</span>
                         </div>
 
                         {/* Breakdown */}
@@ -166,7 +167,7 @@ export const Approvals: React.FC = () => {
                           {quote.items.map((it, i) => (
                             <div key={i} className="flex justify-between text-[11px] font-sans">
                               <span className="truncate max-w-[170px]">{it.productName}</span>
-                              <span className="font-mono text-slate-350">${it.totalPrice.toLocaleString()}</span>
+                              <span className="font-mono text-slate-350">{formatCurrency(it.totalPrice)}</span>
                             </div>
                           ))}
                         </div>

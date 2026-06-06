@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Quotation, RFQ, UserRole } from '../../types';
+import { formatCurrency } from '../../utils/currency';
 import { 
   Building2, Star, Calendar, ArrowLeftRight, Check, 
   HelpCircle, Sparkles, Award, Zap, DollarSign, Send, ArrowUpRight
@@ -191,7 +192,7 @@ export const Comparison: React.FC = () => {
                     <div className="my-5 p-3 rounded-lg dark:bg-slate-950/50 light:bg-slate-100 grid grid-cols-2 gap-4 font-mono select-none">
                       <div>
                         <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans block mb-0.5">Bid pricing quote</span>
-                        <span className="text-base font-black text-emerald-500">${quote.grandTotal.toLocaleString()}</span>
+                        <span className="text-base font-black text-emerald-500">{formatCurrency(quote.grandTotal)}</span>
                         <span className="text-[9px] text-slate-400 font-sans block">Tax factored</span>
                       </div>
                       <div>
@@ -216,8 +217,8 @@ export const Comparison: React.FC = () => {
                             <div key={idx} className="flex justify-between text-xs font-sans dark:text-slate-400">
                               <span className="truncate max-w-[170px]">{it.productName}</span>
                               <div className="flex items-center gap-1.5 shrink-0">
-                                <span className="font-mono text-slate-500">(${it.unitPrice}/u)</span>
-                                <span className="font-mono font-bold text-slate-200">${it.totalPrice.toLocaleString()}</span>
+                                <span className="font-mono text-slate-500">({formatCurrency(it.unitPrice)}/u)</span>
+                                <span className="font-mono font-bold text-slate-200">{formatCurrency(it.totalPrice)}</span>
                               </div>
                             </div>
                           );

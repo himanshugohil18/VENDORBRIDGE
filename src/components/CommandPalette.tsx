@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Search, FolderOpen, Shield, Clipboard, FileText, UserPlus, FileCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { formatCurrency } from '../utils/currency';
 
 interface CommandPaletteProps {
   onNavigate: (tab: string) => void;
@@ -115,7 +116,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
       searchResults.push({
         id: po.id,
         title: po.poNumber,
-        subtitle: `Vendor: ${po.vendorName} • Value: $${po.totalAmount.toLocaleString()} • Status: ${po.status}`,
+        subtitle: `Vendor: ${po.vendorName} • Value: ${formatCurrency(po.totalAmount)} • Status: ${po.status}`,
         type: 'po',
         action: () => {
           onNavigate('pos');
@@ -131,7 +132,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onNavigate }) =>
       searchResults.push({
         id: inv.id,
         title: inv.invoiceNumber,
-        subtitle: `Vendor: ${inv.vendorName} • Due: $${inv.grandTotal.toLocaleString()} • Status: ${inv.status}`,
+        subtitle: `Vendor: ${inv.vendorName} • Due: ${formatCurrency(inv.grandTotal)} • Status: ${inv.status}`,
         type: 'invoice',
         action: () => {
           onNavigate('invoices');

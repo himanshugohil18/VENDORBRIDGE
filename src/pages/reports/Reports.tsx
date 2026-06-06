@@ -162,7 +162,7 @@ export const Reports: React.FC = () => {
       
       doc.setFontSize(11);
       doc.setTextColor(16, 185, 129); // emerald-500
-      doc.text(`$${totalSpend.toLocaleString()}`, 18, 49);
+      doc.text(`Rs. ${totalSpend.toLocaleString()}`, 18, 49);
       
       doc.setTextColor(15, 23, 42);
       doc.text(`${activeCount} Hub Nodes`, 75, 49);

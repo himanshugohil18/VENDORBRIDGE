@@ -43,6 +43,10 @@ model User {
   firstName       String
   lastName        String
   role            UserRole         @default(PROCUREMENT)
+  phone           String?
+  country         String?
+  companyName     String?
+  gstNumber       String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   deletedAt       DateTime?
@@ -93,6 +97,8 @@ model Rfq {
   category        String
   deadline        DateTime
   status          RFQStatus        @default(DRAFT)
+  assignedVendors String[]         @default([])
+  attachments     String[]         @default([])
   creatorId       String?
   creator         User?            @relation("RfqCreator", fields: [creatorId], references: [id])
   createdAt       DateTime         @default(now())
@@ -122,6 +128,7 @@ model RfqItem {
 model Quotation {
   id               String          @id @default(uuid())
   rfqId            String
+  rfqTitle         String          @default("")
   vendorId         String
   vendorName       String
   deliveryTimeline Int

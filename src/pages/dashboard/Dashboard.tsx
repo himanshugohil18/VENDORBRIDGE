@@ -6,6 +6,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { UserRole } from '../../types';
+import { formatCurrency, formatAbbreviatedCurrency } from '../../utils/currency';
 import { 
   TrendingUp, FileSignature, Users, Landmark, 
   Layers, Inbox, Clock, CheckSquare, ListPlus, 
@@ -29,7 +30,7 @@ const DashboardOutlayTooltip = ({ active, payload }: any) => {
         </div>
         <div className="space-y-0.5">
           <span className="text-[9px] font-sans text-slate-500 uppercase font-black tracking-wider block">Total Expenditure</span>
-          <span className="text-xl font-black font-mono text-white">${data.Spend.toLocaleString()}</span>
+          <span className="text-xl font-black font-mono text-white">{formatCurrency(data.Spend)}</span>
         </div>
         {data.Insight && (
           <div className="pt-2 border-t dark:border-slate-850">
@@ -263,7 +264,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <div className="space-y-1">
               <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold block">Commitment Spend</span>
               <div className="text-3xl font-black font-display tracking-tight text-emerald-500 mt-1">
-                ${(totalApprovedSpend + 275000).toLocaleString()}
+                {formatCurrency(totalApprovedSpend + 275000)}
               </div>
             </div>
             <div className="w-10 h-10 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -319,7 +320,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold font-display">Month-over-Month Capital Outlay</h3>
-              <p className="text-[10px] text-slate-400 font-sans mt-0.5">Sourcing expenditures tracked in real-time ($ USD)</p>
+              <p className="text-[10px] text-slate-400 font-sans mt-0.5">Sourcing expenditures tracked in real-time (INR ₹)</p>
             </div>
             <span className="text-[10px] font-mono bg-emerald-500/15 text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/20">
               LIVE INDEX
@@ -342,7 +343,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.15} />
                 <XAxis dataKey="month" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} dy={8} />
-                <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v/1000}k`} dx={-4} />
+                <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `₹${v/1000}k`} dx={-4} />
                 <Tooltip content={<DashboardOutlayTooltip />} cursor={{ stroke: '#10b981', strokeWidth: 1, strokeDasharray: '4 4' }} />
                 <Area type="monotone" dataKey="Spend" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#spendGradPremium)" filter="url(#glowFilter)" />
               </AreaChart>
@@ -413,7 +414,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                     <span className="font-medium text-slate-350 dark:text-slate-300">{category.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-slate-400">${(category.value/1000).toFixed(0)}K</span>
+                    <span className="font-mono text-slate-400">{formatAbbreviatedCurrency(category.value)}</span>
                     <span className="font-mono font-bold text-[#10b981] px-1.5 py-0.5 rounded bg-emerald-500/10 text-[9px]">
                       {percentage}%
                     </span>
