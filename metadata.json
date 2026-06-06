@@ -1,0 +1,6 @@
+{
+  "name": "VendorBridge",
+  "description": "Enterprise-grade procurement and vendor management ERP console featuring quotation comparison visualizers, interactive multi-row RFP workflows, and role-based access controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
