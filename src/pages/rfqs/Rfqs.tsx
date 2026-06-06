@@ -299,7 +299,7 @@ export const Rfqs: React.FC = () => {
       )}
 
       {/* Helper finder */}
-      {(() => {})()}
+
 
       {/* --- BUYER / PROCUREMENT CREATE RFQ MODAL --- */}
       {createModalOpen && (

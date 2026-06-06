@@ -78,6 +78,16 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Helper to determine if server APIs are currently responsive
+const checkServerHealth = async (): Promise<boolean> => {
+  try {
+    const res = await fetch("/api/health");
+    return res.ok;
+  } catch {
+    return false;
+  }
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // --- 1. Theme Configuration ---
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -122,6 +132,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     // Log Activity
     addActivityLog('AUTH', `User profile fields modified for ${profile.firstName || currentUser.firstName}`, currentUser.firstName, currentUser.role);
+
+    fetch('/api/auth/profile', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile)
+    }).catch(err => console.warn("Backend updateProfile failed", err));
   };
 
   const login = (email: string, role: UserRole): boolean => {
@@ -137,6 +153,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     // Log Activity
     addActivityLog('AUTH', `${matchingProfile.firstName} ${matchingProfile.lastName} logged in as ${role}.`, matchingProfile.firstName, role);
+
+    // Call REST login API
+    fetch('/api/auth/login', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, rememberMe: true })
+    }).catch(err => console.warn("Backend dynamic login trace inactive", err));
+
     return true;
   };
 
@@ -148,6 +172,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(newProfile);
     localStorage.setItem('vendorbridge-user', JSON.stringify(newProfile));
     addActivityLog('AUTH', `New profile registered for ${profileData.firstName} (${profileData.role}).`, profileData.firstName, profileData.role);
+
+    fetch('/api/auth/register', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: profileData.email,
+        password: "password123",
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        role: profileData.role
+      })
+    }).catch(err => console.warn("Backend dynamic register trace inactive", err));
+
     return true;
   };
 
@@ -217,7 +254,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
   });
 
-  // --- Synchronization helpers ---
+  // Background Database Sync and Hydration Loop on First Load
+  useEffect(() => {
+    const initializeFullStackSync = async () => {
+      const active = await checkServerHealth();
+      if (active) {
+        console.log("[AppContext Sync] Database server detected. Synchronizing localized data arrays...");
+        try {
+          const payload = {
+            vendors: JSON.parse(localStorage.getItem('vb-vendors') || '[]'),
+            rfqs: JSON.parse(localStorage.getItem('vb-rfqs') || '[]'),
+            quotations: JSON.parse(localStorage.getItem('vb-quotations') || '[]'),
+            approvals: JSON.parse(localStorage.getItem('vb-approvals') || '[]'),
+            purchaseOrders: JSON.parse(localStorage.getItem('vb-pos') || '[]'),
+            invoices: JSON.parse(localStorage.getItem('vb-invoices') || '[]'),
+            activities: JSON.parse(localStorage.getItem('vb-activities') || '[]'),
+            notifications: JSON.parse(localStorage.getItem('vb-notifications') || '[]'),
+          };
+
+          // Post sync to PostgreSQL database fallback server
+          await fetch('/api/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          // Fetch fresh server-driven data queries
+          const [resV, resR, resQ, resA, resP, resI, resAc, resN] = await Promise.all([
+            fetch('/api/vendors').then(r => r.json()),
+            fetch('/api/rfqs').then(r => r.json()),
+            fetch('/api/quotations').then(r => r.json()),
+            fetch('/api/approvals').then(r => r.json()),
+            fetch('/api/purchase-orders').then(r => r.json()),
+            fetch('/api/invoices').then(r => r.json()),
+            fetch('/api/activities').then(r => r.json()),
+            fetch('/api/notifications').then(r => r.json())
+          ]);
+
+          if (Array.isArray(resV) && resV.length > 0) setVendors(resV);
+          if (Array.isArray(resR) && resR.length > 0) setRfqs(resR);
+          if (Array.isArray(resQ) && resQ.length > 0) setQuotations(resQ);
+          if (Array.isArray(resA) && resA.length > 0) setApprovals(resA);
+          if (Array.isArray(resP) && resP.length > 0) setPurchaseOrders(resP);
+          if (Array.isArray(resI) && resI.length > 0) setInvoices(resI);
+          if (Array.isArray(resAc) && resAc.length > 0) setActivities(resAc);
+          if (Array.isArray(resN) && resN.length > 0) setNotifications(resN);
+        } catch (e) {
+          console.warn("[AppContext Sync] Server fetching failed. Running on high-fidelity localized cache fallbacks.", e);
+        }
+      } else {
+        console.log("[AppContext Sync] Database server is unreachable. Running on robust cached local storage.");
+      }
+    };
+
+    initializeFullStackSync();
+  }, []);
+
+  // --- Real-time LocalStorage Synchronization backups ---
   useEffect(() => { localStorage.setItem('vb-vendors', JSON.stringify(vendors)); }, [vendors]);
   useEffect(() => { localStorage.setItem('vb-rfqs', JSON.stringify(rfqs)); }, [rfqs]);
   useEffect(() => { localStorage.setItem('vb-quotations', JSON.stringify(quotations)); }, [quotations]);
@@ -243,6 +336,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       date: new Date().toISOString(),
     };
     setActivities(prev => [newAct, ...prev]);
+
+    fetch('/api/activities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newAct)
+    }).catch(err => console.warn("Activity synchronization inactive", err));
   };
 
   const spawnNotification = (title: string, message: string, type: SystemNotification['type']) => {
@@ -255,6 +354,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString(),
     };
     setNotifications(prev => [newNotif, ...prev]);
+
+    fetch('/api/notifications', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newNotif)
+    }).catch(err => console.warn("Notification sync inactive", err));
   };
 
   // --- Actions ---
@@ -271,11 +376,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setVendors(prev => [newVendor, ...prev]);
     addActivityLog('VENDOR', `Vendor registered: "${vData.companyName}" under representative ${vData.name}.`);
     spawnNotification('Vendor Registered', `"${vData.companyName}" successfully recorded in system.`, 'success');
+
+    // Post in background to Express REST APIs
+    fetch('/api/vendors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newVendor)
+    }).catch(err => console.warn("Vendor POST request failed, falling back to cache", err));
   };
 
   const updateVendor = (updated: Vendor) => {
     setVendors(prev => prev.map(v => v.id === updated.id ? updated : v));
     addActivityLog('VENDOR', `Vendor specifications updated for "${updated.companyName}".`);
+
+    fetch(`/api/vendors/${updated.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    }).catch(err => console.warn("Vendor update failed", err));
   };
 
   const deleteVendor = (id: string) => {
@@ -285,6 +403,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addActivityLog('VENDOR', `Vendor deleted: "${target.companyName}".`);
       spawnNotification('Vendor Removed', `"${target.companyName}" deleted from register.`, 'warning');
     }
+
+    fetch(`/api/vendors/${id}`, {
+      method: 'DELETE'
+    }).catch(err => console.warn("Vendor deletion failed", err));
   };
 
   // RFQs Creation & Publishing
@@ -298,6 +420,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRfqs(prev => [newRfq, ...prev]);
     addActivityLog('RFQ', `Draft Request for Quotation created: "${rfqData.title}"`);
     spawnNotification('RFQ Draft Saved', `"${rfqData.title}" initialized as draft.`, 'info');
+
+    fetch('/api/rfqs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRfq)
+    }).catch(err => console.warn("RFQ creation failed to publish to db", err));
+
     return newRfq;
   };
 
@@ -310,6 +439,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return rfq;
     }));
+
+    fetch(`/api/rfqs/${id}/publish`, {
+      method: 'POST'
+    }).catch(err => console.warn("RFQ publishing request failed", err));
   };
 
   const deleteRFQ = (id: string) => {
@@ -318,6 +451,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (rfq) {
       addActivityLog('RFQ', `RFQ permanently removed : "${rfq.title}"`);
     }
+
+    fetch(`/api/rfqs/${id}`, {
+      method: 'DELETE'
+    }).catch(err => console.warn("RFQ deletion request failed", err));
   };
 
   // Submit Bid (Quotation) from Vendor portal
@@ -370,6 +507,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setQuotations(prev => [newQuotation, ...prev]);
     addActivityLog('QUOTATION', `Quotation submitted by "${vendor.companyName}" for RFQ: "${rfq.title}". Total price $${grandTotal.toLocaleString()}.`, vendor.companyName, UserRole.VENDOR);
     spawnNotification('Quotation Submitted', `"${vendor.companyName}" submitted a quote costing $${grandTotal.toLocaleString()}.`, 'success');
+
+    // Post bid quotation in background
+    fetch('/api/quotations', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newQuotation)
+    }).catch(err => console.warn("Quotation posting database trace inactive", err));
 
     // Automatically file an approval flow request for managers to sign off
     triggerApprovalRequest('QUOTATION', newQuotation.id, `Quotation Approval: ${vendor.companyName} for ${rfq.title}`, currentUser.firstName);
@@ -443,6 +587,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     setApprovals(prev => [newWorkflow, ...prev]);
+
+    fetch('/api/approvals', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newWorkflow)
+    }).catch(err => console.warn("Approval workflow post inactive", err));
 
     // Apply side effects of auto-approval immediately to generate PO and Invoices
     if (isAutoApproved && targetType === 'QUOTATION') {
@@ -555,10 +705,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (status === 'Approved') {
       if (isMultiStage) {
-        if (currentAppr.status === 'Pending') {
+        if ((currentAppr.status as string) === 'Pending') {
           nextStatus = 'Approved (Level 1 Passed)' as any;
           timelineRemark = `[Level 1 Clearance] approved by ${managerName}. ${remarks || 'Review satisfactory. Awaiting Level 2 Admin signature.'}`;
-        } else if (currentAppr.status === 'Approved (Level 1 Passed)') {
+        } else if ((currentAppr.status as string) === 'Approved (Level 1 Passed)') {
           nextStatus = 'Approved';
           timelineRemark = `[Level 2 Authorization] cleared by ${managerName}. ${remarks || 'Final executive signature granted.'}`;
           isFinalApproved = true;
@@ -692,6 +842,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       spawnNotification('Transaction Rejected', `Approval request declined by administrative panel.`, 'error');
     }
+
+    // Submit workflow update to backend database
+    fetch(`/api/approvals/${approvalId}/process`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, remarks, managerName })
+    }).catch(err => console.warn("Backend approval process request failed", err));
   };
 
   const updateInvoiceStatus = (invoiceId: string, status: Invoice['status']) => {
@@ -702,14 +859,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return inv;
     }));
+
+    fetch(`/api/invoices/${invoiceId}/status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status })
+    }).catch(err => console.warn("Invoice status update sync failed", err));
   };
 
   const markNotificationRead = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+
+    fetch(`/api/notifications/${id}/read`, {
+      method: "POST"
+    }).catch(err => console.warn("Notification read submission trace failed", err));
   };
 
   const clearNotifications = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+
+    fetch('/api/notifications/clear', {
+      method: "POST"
+    }).catch(err => console.warn("Clear notifications database request failed", err));
   };
 
   const triggerJudgeDemoMode = () => {
